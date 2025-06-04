@@ -4,6 +4,8 @@ This project analyzes student test data from JSON files and uses Google's Gemini
 
 ---
 
+####  Public Link to PDF hosted report [https://drive.google.com/file/d/1WpcnDExOn52cNIt2RLKOtr7lnTwkIP3J/view?usp=sharing]
+
 ## Objective
 
 - Parse and interpret complex student test performance data (JSON).
