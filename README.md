@@ -4,6 +4,8 @@ This project analyzes student test data from JSON files and uses Google's Gemini
 
 ---
 
+####  Public Link to PDF hosted report [https://drive.google.com/file/d/1WpcnDExOn52cNIt2RLKOtr7lnTwkIP3J/view?usp=sharing]
+
 ## Objective
 
 - Parse and interpret complex student test performance data (JSON).
@@ -37,7 +39,7 @@ This project analyzes student test data from JSON files and uses Google's Gemini
 1. **Clone the Repository:**
     ```
     git clone https://github.com/fizakhan90/fiza-student-performance.git
-    cd <YOUR_RANDOM_REPO_NAME>
+    cd fiza-student-performance
     ```
 
 2. **Create and Activate a Virtual Environment:**
