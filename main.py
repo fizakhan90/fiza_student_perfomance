@@ -1,6 +1,5 @@
-# main.py
 import os
-import json # For creating dummy data if needed for initial run
+import json 
 from data_processor import load_data, process_student_data
 from llm_handler import format_data_for_llm, generate_feedback
 from pdf_generator import generate_pdf_report
@@ -20,7 +19,7 @@ def run_full_analysis_and_report_generation(json_file_path, output_pdf_dir="gene
     raw_data = load_data(json_file_path)
     if not raw_data:
         print(f"Failed to load data from {json_file_path}. Aborting for this file.")
-        return False # Indicate failure
+        return False 
     
     # --- 2. Process Data ---
     print("Processing student data...")
@@ -38,7 +37,6 @@ def run_full_analysis_and_report_generation(json_file_path, output_pdf_dir="gene
     llm_context_str = format_data_for_llm(processed_data)
     if llm_context_str == "No data available to format for LLM.":
         print(f"No data to format for LLM for {json_file_path}. Aborting AI feedback for this file.")
-        # We could still generate a PDF with just data, but AI feedback is a core req.
         ai_feedback = "Error: Could not format data for AI processing." 
     else:
         print("Requesting AI feedback from Gemini (this may take a few moments)...")
@@ -47,39 +45,35 @@ def run_full_analysis_and_report_generation(json_file_path, output_pdf_dir="gene
             print(f"AI feedback generation failed for {student_name}: {ai_feedback}")
         else:
             print(f"AI feedback received successfully for {student_name}.")
-            # print("\n--- AI Feedback Snippet ---")
-            # print(ai_feedback[:300] + "..." if len(ai_feedback) > 300 else ai_feedback)
+            
 
 
     # --- 4. Generate PDF Report ---
-    # Ensure output directory exists
     if not os.path.exists(output_pdf_dir):
         try:
             os.makedirs(output_pdf_dir)
             print(f"Created output directory: {output_pdf_dir}")
         except OSError as e:
             print(f"Error creating output directory {output_pdf_dir}: {e}. PDF will be saved in current directory.")
-            output_pdf_dir = "." # Fallback to current directory
+            output_pdf_dir = "." 
 
     # Construct a unique output PDF name
     base_name = os.path.splitext(os.path.basename(json_file_path))[0]
-    # Sanitize base_name for file systems if it contains problematic characters
     safe_base_name = "".join(c if c.isalnum() or c in ['_', '-'] else '_' for c in base_name)
     output_pdf_filename = os.path.join(output_pdf_dir, f"{safe_base_name}_report.pdf")
     
     print(f"Generating PDF report: {output_pdf_filename}...")
     generate_pdf_report(processed_data, ai_feedback, output_pdf_filename)
     
-    return True # Indicate success
+    return True 
 
 # --- Entry point of the script ---
 if __name__ == "__main__":
     print("--- Student Performance Feedback System ---")
 
     sample_data_dir = "sample_data"
-    # --- This list MUST contain the names of your actual JSON files in the sample_data folder ---
     example_submission_files = [
-        "sample_submission_analysis_1.json", # Replace with actual filename from your provided sample
+        "sample_submission_analysis_1.json", 
         "sample_submission_analysis_2.json",
         "sample_submission_analysis_3.json"
     ]
@@ -103,17 +97,15 @@ if __name__ == "__main__":
         for f_path in json_files_to_process:
             print(f"  - {f_path}")
 
-        # Optional: Define logo path for main execution
-        # main_logo_path = "path/to/your/mathongo_logo.png" 
-        main_logo_path = None # Set to None if no logo
+         
+        main_logo_path = None 
 
         successful_reports = 0
         failed_reports = 0
-        output_reports_dir = "generated_reports" # Main output directory
+        output_reports_dir = "generated_reports" 
 
         for json_file in json_files_to_process:
-            # Pass logo_path if your run_full_analysis function and pdf_generator accept it
-            if run_full_analysis_and_report_generation(json_file, output_pdf_dir=output_reports_dir): #, logo_path_main=main_logo_path):
+            if run_full_analysis_and_report_generation(json_file, output_pdf_dir=output_reports_dir): 
                 successful_reports += 1
             else:
                 failed_reports +=1

@@ -8,19 +8,14 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY, TA_RIGHT
 from reportlab.lib.units import inch, cm, mm
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-# from reportlab.graphics.shapes import Drawing, Rect, Circle # Not used directly in this version
-# from reportlab.graphics import renderPDF # Not used directly
-
-# --- Imports from other project modules (for testing in __main__) ---
 from data_processor import load_data as dp_load_data, process_student_data as dp_process_student_data
 from llm_handler import format_data_for_llm as llm_format_data, generate_feedback as llm_generate_feedback
-
 import os
-import re # For parsing AI feedback
+import re 
 import matplotlib.pyplot as plt
-import io # For image buffer
+import io
 import pandas as pd
-import numpy as np # For potential numeric operations
+import numpy as np
 
 # --- Enhanced Color Palette (Modern Design System) ---
 COLOR_PRIMARY = colors.HexColor('#2563EB')      # Modern Blue
@@ -42,16 +37,15 @@ COLOR_TABLE_ALT_ROW = colors.HexColor('#F1F5F9')     # Alternating row color for
 # --- Helper to convert ReportLab color to Matplotlib/Hex string compatible format ---
 def to_matplotlib_color(rl_color):
     """Converts a ReportLab color object to a Matplotlib-compatible format (hex string or RGB tuple)."""
-    if hasattr(rl_color, 'toHex'): # For HexColor and similar
+    if hasattr(rl_color, 'toHex'): 
         return rl_color.toHex()
     elif hasattr(rl_color, 'red') and hasattr(rl_color, 'green') and hasattr(rl_color, 'blue'):
-        # For generic Color objects
-        alpha = getattr(rl_color, 'alpha', 1.0) # ReportLab alpha is 0-1
-        return (rl_color.red, rl_color.green, rl_color.blue, alpha) # Matplotlib also uses 0-1 for RGB tuples
-    elif isinstance(rl_color, str): # Already a string (e.g. 'red', '#RRGGBB')
+        alpha = getattr(rl_color, 'alpha', 1.0) 
+        return (rl_color.red, rl_color.green, rl_color.blue, alpha)
+    elif isinstance(rl_color, str):
         return rl_color
     print(f"Warning: Unknown color type for Matplotlib: {type(rl_color)}. Attempting to pass as is.")
-    return rl_color # Fallback
+    return rl_color 
 
 def color_to_hex_string(rl_color):
     """Converts a ReportLab color to a hex string for HTML-like font tags."""
@@ -64,8 +58,7 @@ def color_to_hex_string(rl_color):
         return f'#{r:02x}{g:02x}{b:02x}'
     elif isinstance(rl_color, str) and rl_color.startswith('#'):
         return rl_color
-    # Fallback if conversion is not straightforward
-    return '#000000' # Default to black
+    return '#000000' 
 
 # --- Enhanced Chart Creation with Modern Styling ---
 def create_modern_bar_chart(labels, values, title, xlabel, ylabel, value_format_string='{:.1f}', chart_type='performance'):
@@ -93,22 +86,22 @@ def create_modern_bar_chart(labels, values, title, xlabel, ylabel, value_format_
 
     # Modern color schemes based on chart type
     chart_bar_colors = []
-    if chart_type == 'performance': # Used for accuracy charts
+    if chart_type == 'performance': 
         for val in numeric_values_for_plot:
-            if val >= 75: chart_bar_colors.append(to_matplotlib_color(COLOR_ACCENT))      # Green for good
-            elif val >= 50: chart_bar_colors.append(to_matplotlib_color(COLOR_WARNING)) # Amber for average
-            else: chart_bar_colors.append(to_matplotlib_color(COLOR_DANGER))        # Red for needs improvement
-    else: # Default modern blue gradient style
+            if val >= 75: chart_bar_colors.append(to_matplotlib_color(COLOR_ACCENT))      
+            elif val >= 50: chart_bar_colors.append(to_matplotlib_color(COLOR_WARNING))
+            else: chart_bar_colors.append(to_matplotlib_color(COLOR_DANGER))      
+    else: 
         default_palette = [COLOR_PRIMARY, COLOR_PRIMARY_LIGHT, colors.HexColor('#93C5FD'), colors.HexColor('#DBEAFE')]
         chart_bar_colors = [to_matplotlib_color(default_palette[i % len(default_palette)]) for i in range(len(labels))]
     
-    plt.style.use('default') # Start with default then customize
-    fig, ax = plt.subplots(figsize=(7.8, 4.2), facecolor=to_matplotlib_color(COLOR_CARD_BG)) # Match card bg
+    plt.style.use('default') 
+    fig, ax = plt.subplots(figsize=(7.8, 4.2), facecolor=to_matplotlib_color(COLOR_CARD_BG))
     
     bars = ax.bar(labels, numeric_values_for_plot, 
                   color=chart_bar_colors, 
-                  alpha=0.9, # Slightly less transparency
-                  edgecolor=to_matplotlib_color(COLOR_BORDER), # Subtle edge
+                  alpha=0.9,
+                  edgecolor=to_matplotlib_color(COLOR_BORDER),
                   linewidth=0.5)
     
     ax.set_title(title, fontsize=15, fontweight='600', color=to_matplotlib_color(COLOR_TEXT), pad=18)
@@ -127,19 +120,19 @@ def create_modern_bar_chart(labels, values, title, xlabel, ylabel, value_format_
     ax.spines['bottom'].set_color(to_matplotlib_color(COLOR_BORDER))
     
     max_val = max(numeric_values_for_plot, default=0) if numeric_values_for_plot else 0
-    for bar_obj in bars: # Renamed from bar to bar_obj to avoid conflict with bar_colors
+    for bar_obj in bars: 
         height = bar_obj.get_height()
-        ax.text(bar_obj.get_x() + bar_obj.get_width()/2., height + 0.015 * max_val, # Slightly more offset
-                value_format_string.format(height), # Use height, not val here
+        ax.text(bar_obj.get_x() + bar_obj.get_width()/2., height + 0.015 * max_val, 
+                value_format_string.format(height), 
                 ha='center', va='bottom', fontsize=8, 
                 color=to_matplotlib_color(COLOR_TEXT), fontweight='500')
     
-    plt.tight_layout(pad=1.8) # Adjusted padding
+    plt.tight_layout(pad=1.8) 
     
     img_buffer = io.BytesIO()
     plt.savefig(img_buffer, format='png', dpi=250, bbox_inches='tight', facecolor=fig.get_facecolor())
     img_buffer.seek(0)
-    plt.close(fig) # Close the figure explicitly
+    plt.close(fig) 
     return img_buffer
 
 # --- Helper Function for Time Formatting ---
@@ -164,17 +157,14 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
 
     doc = SimpleDocTemplate(output_filename, pagesize=A4,
                             rightMargin=18*mm, leftMargin=18*mm,
-                            topMargin=22*mm, bottomMargin=18*mm) # Adjusted margins
+                            topMargin=22*mm, bottomMargin=18*mm) 
     
     styles = getSampleStyleSheet()
     story = []
 
-    # --- Modern Font System (Assuming Helvetica, can be customized) ---
     FONT_NORMAL = 'Helvetica'
     FONT_BOLD = 'Helvetica-Bold'
-    FONT_ITALIC = 'Helvetica-Oblique'
-
-    # --- Enhanced Typography Styles ---
+    
     title_style = ParagraphStyle('ModernTitle', parent=styles['h1'], alignment=TA_CENTER, 
                                  fontSize=26, fontName=FONT_BOLD, spaceAfter=6*mm, 
                                  textColor=COLOR_PRIMARY_DARK, leading=30)
@@ -196,25 +186,25 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
                                      spaceAfter=2.5*mm, textColor=COLOR_TEXT)
 
     bullet_style = ParagraphStyle('ModernBulletList', parent=body_text_style, leftIndent=7*mm, 
-                                  bulletIndent=3*mm, spaceBefore=1*mm, spaceAfter=1*mm, firstLineIndent=-2*mm) # Hanging indent
+                                  bulletIndent=3*mm, spaceBefore=1*mm, spaceAfter=1*mm, firstLineIndent=-2*mm) 
 
-    # --- Enhanced Header/Footer with Modern Design ---
+    
     main_frame = Frame(doc.leftMargin, doc.bottomMargin, 
-                       doc.width, doc.height - 10*mm, # Adjusted frame height for header
+                       doc.width, doc.height - 10*mm, 
                        id='main_frame', leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
 
     def modern_page_template(canvas, doc):
         canvas.saveState()
-        page_width = doc.width + doc.leftMargin + doc.rightMargin # Full page width
+        page_width = doc.width + doc.leftMargin + doc.rightMargin
         
-        # Modern Header
+    
         header_rect_height = 12*mm
         canvas.setFillColor(COLOR_PRIMARY)
         canvas.rect(0, A4[1] - header_rect_height, A4[0], header_rect_height, fill=1, stroke=0)
         
         if logo_path and os.path.exists(logo_path):
-            try: # Ensure logo fits
-                logo_img = Image(logo_path, width=1.5*inch, height=0.4*inch) # Adjust as needed
+            try: 
+                logo_img = Image(logo_path, width=1.5*inch, height=0.4*inch) 
                 logo_img.hAlign = 'LEFT'
                 logo_img.drawOn(canvas, doc.leftMargin, A4[1] - header_rect_height + 1.5*mm) 
             except Exception as e: print(f"Warning: Could not draw logo: {e}")
@@ -268,12 +258,12 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
         [Paragraph("<b>Overall Accuracy:</b>", body_text_style), Paragraph(accuracy_display_text, body_text_style)]
     ])
     
-    info_table = Table(student_info_table_data, colWidths=[4.5*cm, None]) # Second col takes remaining
+    info_table = Table(student_info_table_data, colWidths=[4.5*cm, None]) 
     info_table.setStyle(TableStyle([
         ('VALIGN', (0,0), (-1,-1), 'TOP'), ('LEFTPADDING', (0,0), (-1,-1), 0),
         ('RIGHTPADDING', (0,0), (-1,-1), 0), ('TOPPADDING', (0,0), (-1,-1), 1.5*mm),
         ('BOTTOMPADDING', (0,0), (-1,-1), 1.5*mm),
-        # ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey) # Optional grid for this table
+
     ]))
     story.append(info_table)
     story.append(Spacer(1, 7*mm))
@@ -286,7 +276,7 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
         feedback_lines = ai_feedback_text.split('\n')
         for line in feedback_lines:
             line_stripped = line.strip()
-            line_processed = line_stripped.replace("**", "") # Remove double asterisks
+            line_processed = line_stripped.replace("**", "") 
 
             if line_processed.startswith("### "): story.append(Paragraph(line_processed.replace("###", "").strip(), subsection_heading_style))
             elif line_processed.startswith("## "): story.append(Paragraph(line_processed.replace("##", "").strip(), section_heading_style)) # Re-using section for AI's H2
@@ -296,7 +286,7 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
             elif re.match(r"^\d+\.\s+", line_stripped):
                 content_part = re.sub(r"^\d+\.\s*", "", line_stripped).replace("**", "")
                 num_prefix = re.match(r"^(\d+\.)\s*", line_stripped).group(1)
-                story.append(Paragraph(f"<b>{num_prefix}</b> {content_part}", bullet_style)) # Bold number
+                story.append(Paragraph(f"<b>{num_prefix}</b> {content_part}", bullet_style)) 
             elif line_processed: story.append(Paragraph(line_processed, body_text_style))
     else:
         story.append(Paragraph(f"⚠️ AI feedback could not be generated. Details: {ai_feedback_text}", body_text_style))
@@ -324,7 +314,7 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
         if col_alignments:
             for i, align in enumerate(col_alignments):
                 style_cmds.append(('ALIGN', (i,1), (i,-1), align))
-        for i in range(1, len(table_content)): # Zebra striping
+        for i in range(1, len(table_content)):
             if i % 2 == 0: style_cmds.append(('BACKGROUND', (0,i), (-1,i), COLOR_TABLE_ALT_ROW))
         
         table.setStyle(TableStyle(style_cmds))
@@ -360,12 +350,11 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
     difficulty_perf = processed_data.get("difficulty_performance", {})
     if difficulty_perf:
         story.append(Paragraph("Performance by Difficulty Level", subsection_heading_style))
-        # ... (ordered_levels logic from previous version) ...
-        ordered_levels = [] # Re-define or ensure it's correctly populated
-        for level_key_main in ["Easy", "Medium", "Hard", "Tough"]: # Common difficulty names
+        ordered_levels = [] 
+        for level_key_main in ["Easy", "Medium", "Hard", "Tough"]: 
              if level_key_main in difficulty_perf: ordered_levels.append(level_key_main)
              elif level_key_main.lower() in difficulty_perf: ordered_levels.append(level_key_main.lower())
-        for level_key_other in difficulty_perf.keys(): # Add any others
+        for level_key_other in difficulty_perf.keys(): 
             if level_key_other not in ordered_levels and level_key_other.capitalize() not in ordered_levels:
                  ordered_levels.append(level_key_other)
 
@@ -393,7 +382,7 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
         story.append(Spacer(1, 6*mm))
 
 
-    # --- Chapter Performance Table (Optional, can be long) ---
+    # --- Chapter Performance Table ---
     chapter_perf = processed_data.get("chapter_performance", {})
     if chapter_perf:
         story.append(Paragraph("Chapter Performance Highlights", subsection_heading_style))
@@ -403,18 +392,18 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
         data_rows_chap = []
         chapters_shown = 0
         for chapter, p_data in sorted_chapters:
-            if chapters_shown < 7 or p_data.get('accuracy_percent', 100) < 65: # Show top N weakest or needing attention
+            if chapters_shown < 7 or p_data.get('accuracy_percent', 100) < 65: 
                 acc_val = p_data.get('accuracy_percent', 0)
                 acc_color_hex = color_to_hex_string(COLOR_ACCENT if acc_val >= 75 else (COLOR_WARNING if acc_val >= 50 else COLOR_DANGER))
                 acc_text = f'<font color="{acc_color_hex}">{acc_val:.1f}%</font>' if isinstance(acc_val, (int, float)) else str(acc_val)
                 data_rows_chap.append([
-                    Paragraph(chapter[:35] + '...' if len(chapter) > 35 else chapter, body_text_style), # Truncate long names
+                    Paragraph(chapter[:35] + '...' if len(chapter) > 35 else chapter, body_text_style),
                     Paragraph(acc_text, body_text_style),
                     Paragraph(f"{p_data.get('correct_answers',0)}/{p_data.get('total_questions',0)}", body_text_style),
                     Paragraph(format_seconds_for_pdf(p_data.get('average_time_seconds')), body_text_style)
                 ])
                 chapters_shown +=1
-            if chapters_shown >= 10: break # Max chapters to show
+            if chapters_shown >= 10: break 
         
         if data_rows_chap:
             chap_table = create_styled_data_table(data_rows_chap, [6*cm, 3*cm, 3.5*cm, 2.5*cm], header_chap, ['LEFT', 'CENTER', 'CENTER', 'CENTER'])
@@ -428,11 +417,9 @@ def generate_pdf_report(processed_data, ai_feedback_text, output_filename="stude
         print(f"✅ Modern PDF report generated successfully: {output_filename}")
     except Exception as e:
         print(f"❌ Error generating PDF: {e}")
-        # Fallback (simplified version from your previous code)
         try:
             print("🔄 Attempting simplified PDF generation...")
             simple_story_content = [Paragraph("Student Performance Report (Simplified)", title_style)]
-            # ... add more critical info to simple_story_content ...
             simple_doc_filename = output_filename.replace(".pdf", "_simplified.pdf")
             simple_doc = SimpleDocTemplate(simple_doc_filename, pagesize=A4)
             simple_doc.build(simple_story_content)
@@ -445,7 +432,6 @@ if __name__ == '__main__':
     print("🧪 Testing Enhanced PDF Generator...")
     
     sample_data_dir = "sample_data"
-    # Ensure this file exists and matches the structure your data_processor expects
     sample_file = 'sample_submission_analysis_1.json' 
     test_json_path = os.path.join(sample_data_dir, sample_file)
 
@@ -470,7 +456,6 @@ if __name__ == '__main__':
         ai_feedback_for_pdf_test = "Test AI Feedback: Student showed good effort. Focus on weak areas." # Default
         if not llm_context_test.startswith("Error") and llm_context_test != "No data available to format for LLM.":
             print("📞 Requesting AI feedback for PDF test (this may take a moment)...")
-            # This will call the actual LLM API if config is set
             ai_feedback_for_pdf_test = llm_generate_feedback(llm_context_test, student_name_test)
             if ai_feedback_for_pdf_test.startswith("Error:"):
                  print(f"⚠️ AI feedback generation failed for PDF test: {ai_feedback_for_pdf_test}")
@@ -484,10 +469,7 @@ if __name__ == '__main__':
         os.makedirs(output_dir_test, exist_ok=True)
         
         pdf_output_path_test = os.path.join(output_dir_test, "enhanced_module_test_report.pdf")
-        
-        # Optional: path to a logo image for testing
-        # test_logo_path = "path/to/your/logo.png" 
-        test_logo_path = None # Set to None if no logo for testing
+        test_logo_path = None 
         
         print(f"📄 Generating PDF: {pdf_output_path_test}")
         generate_pdf_report(processed_data_for_pdf_test, ai_feedback_for_pdf_test, 
