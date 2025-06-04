@@ -31,6 +31,20 @@ This project analyzes student test data from JSON files and uses Google's Gemini
 
 ## Project Structure
 
+```
+fiza_student-performance/
+├── generated_reports/
+├── sample_data/
+├── .gitignore
+├── config.py
+├── data_processor.py
+├── llm_handler.py
+├── main.py
+├── pdf_generator.py
+├── README.md
+└── requirements.txt
+```
+
 
 ---
 
@@ -122,7 +136,6 @@ This project analyzes student test data from JSON files and uses Google's Gemini
 
 - System reports accuracy as **Total Correct Answers Parsed / Total Questions Parsed** for each category, ensuring consistency across all breakdowns, independent of "attempted" metrics in the source JSON.
 
----
 
 
 
