@@ -125,9 +125,4 @@ This project analyzes student test data from JSON files and uses Google's Gemini
 ---
 
 
-**Refinements Made:**
-- Improved section clarity and formatting.
-- Used concise bullet points for readability.
-- Added explicit code blocks and plaintext for structure.
-- Clarified security and setup steps.
-- Summarized prompt and PDF logic for quick understanding.
+
